@@ -2,6 +2,7 @@ import { AsyncHandler } from "../utils/AsyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
+import { Task } from "../models/task.models.js";
 
 const createUser = AsyncHandler(async (req,res)=> {
     const {name,email} = req.body;
@@ -39,14 +40,18 @@ const deleteUser = AsyncHandler(async (req,res)=> {
     if([name,email].some((feild) => feild?.trim() === "")){
         throw new ApiError(400,"Name or Email os required ")
     }
+    
 
-    const userExist = await User.findOne({
-        $or:[{name},{email}]
-    });
-    if(!userExist){
+    
+    const user = await User.findOne({name:name.toLowerCase()})
+    if(!user){
         throw new ApiError(405,"user Doesnt not exist ")
     }
-
+    
+    const DeleteTasks = await Task.deleteMany({taskCreator:user?._id})
+    if(!DeleteTasks){
+        throw new ApiError(400,"cant delete tasks")
+    }
     const DeleteUser = await User.findOneAndDelete({name:name})
     if(!DeleteUser){
         throw new ApiError(400,"cant delete user")
