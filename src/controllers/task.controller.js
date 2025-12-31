@@ -29,4 +29,51 @@ const createTask = AsyncHandler(async (req,res) => {
 
 })
 
-export {createTask}
+const deleteTask = AsyncHandler(async (req,res) => {
+    const {name} = req.body;
+    const {taskId} = req.params
+    
+    
+
+    if(!name || !taskId){
+        new ApiError(200,"Name and Task id is required...")
+    }
+    const user = await User.findOne({name:name.toLowerCase()})
+    if(!user){throw new ApiError(400,"User does not exist...")};
+
+    const delete_task = await Task.findByIdAndDelete(taskId);
+    if(!delete_task){
+        throw new ApiError(400,"can not delete Task...")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,{},"task deleted  sucessully...")
+    )
+    
+    
+})
+
+const getTaskById = AsyncHandler(async (req,res) => {
+    const {name} = req.body;
+    const {taskId} = req.params
+    
+    if(!name || !taskId){
+        new ApiError(200,"Name and Task id is required...")
+    }
+    const user = await User.findOne({name:name.toLowerCase()})
+    if(!user){throw new ApiError(400,"User does not exist...")};
+    
+    const task = await Task.findById(taskId);
+    if(!task){
+        throw ApiError(400,"Task doent fetched")
+    }
+    
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,task,"task fetched   sucessully...")
+    )
+})
+export {createTask,deleteTask,getTaskById}
