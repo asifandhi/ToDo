@@ -63,4 +63,45 @@ const deleteUser = AsyncHandler(async (req,res)=> {
     )
 
 })
-export {createUser,deleteUser}
+
+const GetUser = AsyncHandler(async (req,res) =>{
+    const {name} = req.body;
+    if(name.trim() == ""){
+        throw new ApiError(400,"Please enter the name ")
+
+    }
+    const user = await User.findOne({name:name });
+    if(!user){
+        throw new ApiError(404,"User not found ")
+    }
+
+    const GetAllDetails = await User.aggregate([
+        {
+            $match:{_id:user._id}
+        },
+        {
+            $lookup:{
+                from:"tasks",
+                localField:"_id",
+                foreignField:"taskCreator",
+                as:"tasks"
+            }
+        }
+    ])
+
+
+    if(!GetAllDetails){
+        throw new ApiError(404,"Error while fetching the details ")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,GetAllDetails,"Details fetched successfully")
+    )
+})
+
+
+
+
+export {createUser,deleteUser,GetUser}
